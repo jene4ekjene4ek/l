@@ -14,10 +14,10 @@ import mlflow
 from mlflow import version
 from mlflow import spark as mlflow_spark
 
-from livy import LivySession
+  #from livy import LivySession
 
 
-LIVY_URL = 'http://172.16.80.22:8998'
+#LIVY_URL = 'http://172.16.80.22:8998'
 
 print("MLflow Version:", mlflow.version.VERSION)
 print("Tracking URI:", mlflow.tracking.get_tracking_uri())
