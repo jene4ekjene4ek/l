@@ -27,7 +27,7 @@ mlflow.set_experiment(experiment_name)
 
 
 
-print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
+# print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
     #spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
     # livy_session=LivySession(LIVY_URL)
