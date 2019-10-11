@@ -23,12 +23,12 @@ print("MLflow Version:", mlflow.version.VERSION)
 print("Tracking URI:", mlflow.tracking.get_tracking_uri())
 experiment_name = "pyspark"
 print("experiment_name:", experiment_name)
-mlflow.set_experiment(experiment_name)
+
 
 
 
 # print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
-spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
+
 
     # livy_session=LivySession(LIVY_URL)
 
@@ -40,6 +40,8 @@ data = "0 128:51 129:159 130:253 131:159 132:50 155:48 156:238 157:252 158:252 1
     # Index labels, adding metadata to the label column.
     # Fit on whole dataset to include all labels in index.
 if __name__ == "__main__":
+    mlflow.set_experiment(experiment_name)
+    spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
     labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
 
     # Automatically identify categorical features, and index them.
