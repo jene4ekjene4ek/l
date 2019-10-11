@@ -39,15 +39,16 @@ data = "0 128:51 129:159 130:253 131:159 132:50 155:48 156:238 157:252 158:252 1
 
     # Index labels, adding metadata to the label column.
     # Fit on whole dataset to include all labels in index.
-labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
+if __name__ == "__main__":
+    labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
 
     # Automatically identify categorical features, and index them.
     # We specify maxCategories so features with > 4 distinct values are treated as continuous.
-featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
+    featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
 
     # Split the data into training and test sets
-(trainingData, testData) = data.randomSplit([0.7, 0.3])
-if __name__ == "__main__":
+    (trainingData, testData) = data.randomSplit([0.7, 0.3])
+
     parser = ArgumentParser()
     parser.add_argument("--max_depth", dest="max_depth", help="max_depth", default=2, type=int)
     parser.add_argument("--max_bins", dest="max_bins", help="max_bins", default=32, type=int)
