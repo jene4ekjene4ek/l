@@ -1,3 +1,27 @@
+"""
+PySpark Decision Tree Classification Example.
+"""
+from __future__ import print_function
+
+import sys, os
+from argparse import ArgumentParser
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.feature import StringIndexer, VectorIndexer
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.sql import SparkSession
+import mlflow
+from mlflow import version
+from mlflow import spark as mlflow_spark
+
+print("MLflow Version:", mlflow.version.VERSION)
+print("Tracking URI:", mlflow.tracking.get_tracking_uri())
+experiment_name = "pyspark"
+print("experiment_name:", experiment_name)
+mlflow.set_experiment(experiment_name)
+
+
+def train(max_depth, max_bins):
     print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
     spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
@@ -65,3 +89,4 @@ if __name__ == "__main__":
         print("run_id:", run.info.run_uuid)
         print("experiment_id:", run.info.experiment_id)
         train(args.max_depth, args.max_bins)
+
