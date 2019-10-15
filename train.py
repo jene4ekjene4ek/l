@@ -14,8 +14,21 @@ from pyspark.sql import SparkSession
 import mlflow
 
 
-def train(max_depth, max_bins):
-    print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
+
+    
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--max_depth", dest="max_depth", help="max_depth", default=2, type=int)
+    parser.add_argument("--max_bins", dest="max_bins", help="max_bins", default=32, type=int)
+    args = parser.parse_args()
+    current_file = os.path.basename(__file__)
+
+    with mlflow.start_run():
+        mlflow.log_param("max_depth", args.max_depth)
+        mlflow.log_param("max_bins", args.max_bins)
+        print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
     spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
     # Load the data stored in LIBSVM format as a DataFrame.
@@ -63,16 +76,3 @@ def train(max_depth, max_bins):
     tree_model = model.stages[2]
     print(tree_model)
     spark.stop()
-
-
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--max_depth", dest="max_depth", help="max_depth", default=2, type=int)
-    parser.add_argument("--max_bins", dest="max_bins", help="max_bins", default=32, type=int)
-    args = parser.parse_args()
-    current_file = os.path.basename(__file__)
-
-    with mlflow.start_run():
-        mlflow.log_param("max_depth", args.max_depth)
-        mlflow.log_param("max_bins", args.max_bins)
-        train(args.max_depth, args.max_bins)
