@@ -18,9 +18,9 @@ print("Tracking URI:", mlflow.tracking.get_tracking_uri())
 
 metrics = ["rmse","r2", "mae"]
 
-def train(maxDepth, maxBins):
-    data_path = "s3a://orlow-cos/simple-pyspark-model/sample_libsvm_data.txt"
-    data = spark.read.format("libsvm").load(data_path)
+def train(data, maxDepth, maxBins):
+#     data_path = "s3a://orlow-cos/simple-pyspark-model/sample_libsvm_data.txt"
+#     data = spark.read.format("libsvm").load(data_path)
     (trainingData, testData) = data.randomSplit([0.7, 0.3], 2019)
 
     # MLflow - log parameters
@@ -68,15 +68,15 @@ if __name__ == "__main__":
     mlflow.set_experiment(args.experiment_name)
     print("experiment_id:",client.get_experiment_by_name(args.experiment_name).experiment_id)
 
-#     data = read_data(spark, args.data_path)
-#     data = spark.read.format("libsvm").load(args.data_path)
-#     if (args.describe):
-#         print("==== Data")
-#         data.describe().show()
+    data = read_data(spark, args.data_path)
+    data = spark.read.format("libsvm").load(args.data_path)
+    if (args.describe):
+        print("==== Data")
+        data.describe().show()
     
 
     with mlflow.start_run() as run:
         print("MLflow:")
         print("  run_id:",run.info.run_uuid)
         print("  experiment_id:",run.info.experiment_id)
-        train(args.max_depth,args.max_bins)
+        train(data, args.max_depth,args.max_bins)
