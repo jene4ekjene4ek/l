@@ -9,7 +9,7 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler
 import mlflow
 import mlflow.spark
-from common import *
+# from common import *
 
 spark = SparkSession.builder.appName("App").getOrCreate()
 
