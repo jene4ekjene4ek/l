@@ -65,7 +65,8 @@ if __name__ == "__main__":
     mlflow.set_experiment(args.experiment_name)
     print("experiment_id:",client.get_experiment_by_name(args.experiment_name).experiment_id)
 
-    data = read_data(spark, args.data_path)
+#     data = read_data(spark, args.data_path)
+    data = spark.read.format("libsvm").load(args.data_path)
     if (args.describe):
         print("==== Data")
         data.describe().show()
