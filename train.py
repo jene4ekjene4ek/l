@@ -11,7 +11,7 @@ import mlflow
 import mlflow.spark
 # from common import *
 
-spark = SparkSession.builder.appName("App").getOrCreate()
+
 
 print("MLflow Version:", mlflow.version.VERSION)
 print("Tracking URI:", mlflow.tracking.get_tracking_uri())
@@ -51,6 +51,7 @@ def train(data, maxDepth, maxBins):
     #mlflow.mleap.log_model(spark_model=model, sample_input=testData, artifact_path="mleap-model")
 
 if __name__ == "__main__":
+    spark = SparkSession.builder.appName("App").getOrCreate()
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("--experiment_name", dest="experiment_name", help="experiment_name", default="pyspark", required=False)
