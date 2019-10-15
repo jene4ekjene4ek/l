@@ -14,7 +14,7 @@ from pyspark.sql import SparkSession
 import mlflow
 
 
-def train(max_depth=2, max_bins=32):
+def train(max_depth, max_bins):
     print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
     spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
