@@ -1,4 +1,4 @@
-name: mlflow_demo_pyspark
+name: pyspark
 
 conda_env: conda.yaml
 
