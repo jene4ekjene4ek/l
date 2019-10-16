@@ -18,39 +18,66 @@ print("Tracking URI:", mlflow.tracking.get_tracking_uri())
 
 metrics = ["rmse","r2", "mae"]
 
-def train(data, maxDepth, maxBins):
+# def train(data, maxDepth, maxBins):
 #     data_path = "s3a://orlow-cos/simple-pyspark-model/sample_libsvm_data.txt"
 #     data = spark.read.format("libsvm").load(data_path)
-    (trainingData, testData) = data.randomSplit([0.7, 0.3], 2019)
+#     (trainingData, testData) = data.randomSplit([0.7, 0.3], 2019)
+def train(data, max_depth, max_bins):
+    print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
+#     spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
-    # MLflow - log parameters
-    print("Parameters:")
-    print("  maxDepth:",maxDepth)
-    print("  maxBins:",maxBins)
-    mlflow.log_param("maxDepth",maxDepth)
-    mlflow.log_param("maxBins",maxBins)
+    # Load the data stored in LIBSVM format as a DataFrame.
+#     data = spark.read.format("libsvm").load(data_path)
 
-    # Create pipeline
-    dt = DecisionTreeRegressor(labelCol=colLabel, featuresCol=colFeatures, maxDepth=maxDepth, maxBins=maxBins)
-    assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol=colFeatures)
-    pipeline = Pipeline(stages=[assembler, dt])
-    
-    # Fit model and predic
+    # Index labels, adding metadata to the label column.
+    # Fit on whole dataset to include all labels in index.
+    label_indexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
+
+    # Automatically identify categorical features, and index them.
+    # We specify maxCategories so features with > 4 distinct values are treated as continuous.
+    feature_indexer = VectorIndexer(
+        inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
+
+    # Split the data into training and test sets
+    (trainingData, testData) = data.randomSplit([0.7, 0.3])
+    mlflow.log_param("max_depth", max_depth)
+    mlflow.log_param("max_bins", max_bins)
+    # Train a DecisionTree model.
+    dt = DecisionTreeClassifier(labelCol="indexedLabel",
+                                featuresCol="indexedFeatures",
+                                maxDepth=max_depth,
+                                maxBins=max_bins)
+
+    # Chain indexers and tree in a Pipeline.
+    pipeline = Pipeline(stages=[label_indexer, feature_indexer, dt])
+
+    # Train model.  This also runs the indexers.
     model = pipeline.fit(trainingData)
+
+    # Make predictions
     predictions = model.transform(testData)
 
-    # MLflow - log metrics
-    print("Metrics:")
-    predictions = model.transform(testData)
-    for metric in metrics:
-        evaluator = RegressionEvaluator(labelCol=colLabel, predictionCol=colPrediction, metricName=metric)
-        v = evaluator.evaluate(predictions)
-        print("  {}: {}".format(metric,v))
-        mlflow.log_metric(metric,v)
+    # Select example rows to display.
+    predictions.select("prediction", "indexedLabel", "features").show(5)
 
-    # MLflow - log model
-    mlflow.spark.log_model(model, "spark-model")
-    #mlflow.mleap.log_model(spark_model=model, sample_input=testData, artifact_path="mleap-model")
+    # Select (prediction, true label) and compute test error.
+    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel",
+                                                  predictionCol="prediction",
+                                                  metricName="accuracy")
+    accuracy = evaluator.evaluate(predictions)
+    test_error = 1.0 - accuracy
+    print("Test Error = {} ".format(test_error))
+    
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("test_error", test_error)
+
+    tree_model = model.stages[2]
+    print(tree_model)
+    
+    mlflow_spark.log_model(model, "spark-model")
+    
+    spark.stop()
+
 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("App").getOrCreate()
