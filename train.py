@@ -76,7 +76,7 @@ def train(data, max_depth, max_bins):
     tree_model = model.stages[2]
     print(tree_model)
     
-    mlflow.spark.log_model(model, "spark-model")
+    mlflow.spark.log_model(model)
     
     spark.stop()
 
