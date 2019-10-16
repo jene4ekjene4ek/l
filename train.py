@@ -7,6 +7,7 @@ from pyspark.ml import Pipeline
 from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler, StringIndexer, VectorIndexer
+from pyspark.ml.classification import DecisionTreeClassifier
 import mlflow
 import mlflow.spark
 # from common import *
