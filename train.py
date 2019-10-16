@@ -8,6 +8,7 @@ from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler, StringIndexer, VectorIndexer
 from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 import mlflow
 import mlflow.spark
 # from common import *
