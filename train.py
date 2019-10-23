@@ -27,7 +27,7 @@ def train(data_path, max_depth, max_bins):
     data = spark.read.format("libsvm").load(data_path)
     
     df_l = data.select('label')
-    df_l.repartition(1).write.csv('s3://orlow-cos/pyspark-model/data.csv', mode='overwrite', sep='\t', header=True)
+    df_l.repartition(1).write.csv('data.csv', mode='overwrite', sep='\t', header=True)
 
     # Index labels, adding metadata to the label column.
     # Fit on whole dataset to include all labels in index.
