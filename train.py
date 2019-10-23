@@ -1,35 +1,33 @@
 """
-PySpark Decision Tree Regression Example.
+PySpark Decision Tree Classification Example.
 """
+from __future__ import print_function
 
-from pyspark.sql import SparkSession
+from argparse import ArgumentParser
 from pyspark.ml import Pipeline
-from pyspark.ml.regression import DecisionTreeRegressor
-from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.ml.feature import VectorAssembler, StringIndexer, VectorIndexer
 from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.feature import StringIndexer, VectorIndexer
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.sql import SparkSession
 import mlflow
-import mlflow.spark
-# from common import *
+from mlflow import spark
+
+from pyspark import SparkConf
+from pyspark import SparkContext
 
 
+def train(data_path, max_depth, max_bins):
 
-print("MLflow Version:", mlflow.version.VERSION)
-print("Tracking URI:", mlflow.tracking.get_tracking_uri())
-
-metrics = ["rmse","r2", "mae"]
-
-# def train(data, maxDepth, maxBins):
-#     data_path = "s3a://orlow-cos/simple-pyspark-model/sample_libsvm_data.txt"
-#     data = spark.read.format("libsvm").load(data_path)
-#     (trainingData, testData) = data.randomSplit([0.7, 0.3], 2019)
-def train(data, max_depth, max_bins):
     print("Parameters: max_depth: {}  max_bins: {}".format(max_depth,max_bins))
-#     spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
+
+    
+    spark = SparkSession.builder.appName("DecisionTreeClassificationExample").getOrCreate()
 
     # Load the data stored in LIBSVM format as a DataFrame.
-#     data = spark.read.format("libsvm").load(data_path)
+    data = spark.read.format("libsvm").load(data_path)
+    
+    df_l = data.select('label')
+    df_l.repartition(1).write.csv('s3://orlow-cos/pyspark-model/data.csv', mode='overwrite', sep='\t', header=True)
 
     # Index labels, adding metadata to the label column.
     # Fit on whole dataset to include all labels in index.
@@ -42,8 +40,7 @@ def train(data, max_depth, max_bins):
 
     # Split the data into training and test sets
     (trainingData, testData) = data.randomSplit([0.7, 0.3])
-    mlflow.log_param("max_depth", max_depth)
-    mlflow.log_param("max_bins", max_bins)
+
     # Train a DecisionTree model.
     dt = DecisionTreeClassifier(labelCol="indexedLabel",
                                 featuresCol="indexedFeatures",
@@ -69,20 +66,22 @@ def train(data, max_depth, max_bins):
     accuracy = evaluator.evaluate(predictions)
     test_error = 1.0 - accuracy
     print("Test Error = {} ".format(test_error))
-    
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_metric("test_error", test_error)
 
     tree_model = model.stages[2]
     print(tree_model)
     
+    mlflow.log_param('max_depth', max_depth)
+    mlflow.log_param('max_bins', max_bins)
+    
     mlflow.spark.log_model(model, '')
+    mlflow.spark.save_model(model, '')
+#     try:
+#     mlflow.spark.save_model(model, save_path)
+#     except: 
     
     spark.stop()
-
-
+    
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("App").getOrCreate()
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("--experiment_name", dest="experiment_name", help="experiment_name", default="pyspark", required=False)
@@ -92,20 +91,14 @@ if __name__ == "__main__":
     parser.add_argument("--describe", dest="describe", help="Describe data", default=False, action='store_true')
     args = parser.parse_args()
 
-    client = mlflow.tracking.MlflowClient()
-    print("experiment_name:",args.experiment_name)
-    mlflow.set_experiment(args.experiment_name)
-    print("experiment_id:",client.get_experiment_by_name(args.experiment_name).experiment_id)
-
-    print(args.data_path)
-    data = spark.read.format("libsvm").load(args.data_path)
-    if (args.describe):
-        print("==== Data")
-        data.describe().show()
     
-
     with mlflow.start_run() as run:
-        print("MLflow:")
-        print("  run_id:",run.info.run_uuid)
-        print("  experiment_id:",run.info.experiment_id)
-        train(data, args.max_depth,args.max_bins)
+      print("MLflow:")
+      print("  run_id:",run.info.run_uuid)
+      print("  experiment_id:",run.info.experiment_id)
+      train(str(args.data_path), args.max_depth, args.max_bins)
+      mlflow.log_param('max_depth', args.max_depth)
+      mlflow.log_param('max_bins', args.max_bins)    
+ 
+    #print(path)
+
